@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Prompting Lab — Técnicas de Prompting Estructurado</title>
+<meta name="description" content="Aprende Zero-shot y Few-shot Prompting en una misión interactiva guiada por un robot compañero.">
+<meta name="theme-color" content="#0A0E1A">
+
+<!-- Fuentes: Space Grotesk (titulares, look tecnológico) + Inter (cuerpo de texto) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============================================================
+     CAPA DE PARTÍCULAS DE FONDO (decorativa, no interactiva)
+     ============================================================ -->
+<div class="bg-field" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow--a"></div>
+  <div class="bg-glow bg-glow--b"></div>
+</div>
+
+<!-- ============================================================
+     HUD SUPERIOR
+     ============================================================ -->
+<header class="hud" role="banner">
+  <div class="hud__brand">
+    <span class="hud__brand-icon" aria-hidden="true">◆</span>
+    <span class="hud__brand-text">PROMPTING LAB</span>
+  </div>
+
+  <div class="hud__center">
+    <span id="hudLessonLabel" class="hud__lesson">Lección 1 / 9</span>
+    <div class="hud__progress" role="progressbar" aria-label="Progreso de la misión" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="hudProgressBar">
+      <div class="hud__progress-fill" id="hudProgressFill"></div>
+    </div>
+  </div>
+
+  <div class="hud__right">
+    <span class="hud__xp" aria-live="polite"><span aria-hidden="true">⚡</span> XP <strong id="hudXp">0</strong></span>
+    <button type="button" class="hud__icon-btn" id="badgesBtn" aria-haspopup="dialog" aria-controls="badgesModal" aria-label="Ver insignias">🏆</button>
+    <button type="button" class="hud__icon-btn" id="soundBtn" aria-pressed="false" aria-label="Activar sonido">🔇</button>
+    <button type="button" class="hud__icon-btn" id="resetBtn" aria-haspopup="dialog" aria-controls="resetModal" aria-label="Reiniciar progreso">↺</button>
+  </div>
+</header>
+
+<!-- ============================================================
+     ESTRUCTURA PRINCIPAL: CONTENIDO + ROBOT
+     ============================================================ -->
+<main class="stage" id="stage">
+
+  <!-- -------- COLUMNA ROBOT (compañero 3D/2D) -------- -->
+  <section class="robot-column" aria-label="Compañero robot">
+    <div class="robot-stage" id="robotStage">
+
+      <!--
+        BLOQUE SPLINE (OPCIONAL / DESACTIVADO POR DEFECTO)
+        ---------------------------------------------------
+        Si preparas tu escena en Spline siguiendo la guía del PASO 5,
+        descomenta este bloque, sustituye TU_URL_DE_SPLINE_AQUI por tu
+        URL real, y comenta el bloque <svg id="robotSvg"> de más abajo.
+
+        <script type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"></script>
+        <spline-viewer id="robotSpline" url="TU_URL_DE_SPLINE_AQUI"></spline-viewer>
+      -->
+
+      <!-- ROBOT ORIGINAL EN SVG (fallback funcional, sin dependencias externas) -->
+      <div class="robot-glow" aria-hidden="true"></div>
+      <svg id="robotSvg" class="robot-svg" viewBox="0 0 240 280" role="img" aria-label="Robot compañero educativo" data-state="idle">
+        <defs>
+          <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#8FE9FF"/>
+            <stop offset="100%" stop-color="#2FA9FF"/>
+          </radialGradient>
+          <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#F4F7FB"/>
+            <stop offset="100%" stop-color="#C9D2DE"/>
+          </linearGradient>
+        </defs>
+
+        <g id="robotShadow">
+          <ellipse cx="120" cy="262" rx="52" ry="10" fill="#000" opacity="0.35"/>
+        </g>
+
+        <g id="robotBody">
+          <!-- antena -->
+          <g id="antenna">
+            <line x1="120" y1="38" x2="120" y2="14" stroke="#3D9BFF" stroke-width="4" stroke-linecap="round"/>
+            <circle id="antennaTip" cx="120" cy="10" r="6" fill="#34E4EA"/>
+          </g>
+
+          <!-- cuerpo -->
+          <path d="M78 150 Q78 118 120 118 Q162 118 162 150 L162 210 Q162 236 120 236 Q78 236 78 210 Z" fill="url(#bodyGrad)" stroke="#8A94A6" stroke-width="2"/>
+          <rect x="104" y="160" width="32" height="20" rx="8" fill="#1B2233" opacity="0.85"/>
+          <circle cx="120" cy="170" r="6" fill="url(#eyeGlow)" id="chestLight"/>
+
+          <!-- brazos -->
+          <g id="armLeft">
+            <rect x="60" y="150" width="18" height="52" rx="9" fill="#C9D2DE" stroke="#8A94A6" stroke-width="2"/>
+            <circle cx="69" cy="204" r="10" fill="#F4F7FB" stroke="#8A94A6" stroke-width="2"/>
+          </g>
+          <g id="armRight">
+            <rect x="162" y="150" width="18" height="52" rx="9" fill="#C9D2DE" stroke="#8A94A6" stroke-width="2"/>
+            <circle cx="171" cy="204" r="10" fill="#F4F7FB" stroke="#8A94A6" stroke-width="2"/>
+          </g>
+
+          <!-- piernas -->
+          <g id="legs">
+            <rect x="94" y="230" width="16" height="26" rx="7" fill="#C9D2DE" stroke="#8A94A6" stroke-width="2"/>
+            <rect x="130" y="230" width="16" height="26" rx="7" fill="#C9D2DE" stroke="#8A94A6" stroke-width="2"/>
+          </g>
+
+          <!-- cabeza -->
+          <g id="head">
+            <path d="M70 90 Q70 40 120 40 Q170 40 170 90 Q170 120 120 120 Q70 120 70 90 Z" fill="url(#bodyGrad)" stroke="#8A94A6" stroke-width="2.5"/>
+            <!-- visor -->
+            <path d="M86 82 Q86 62 120 62 Q154 62 154 82 Q154 100 120 100 Q86 100 86 82 Z" fill="#0E1524"/>
+            <g id="eyes">
+              <ellipse id="eyeLeft" cx="106" cy="82" rx="9" ry="11" fill="url(#eyeGlow)"/>
+              <ellipse id="eyeRight" cx="134" cy="82" rx="9" ry="11" fill="url(#eyeGlow)"/>
+            </g>
+          </g>
+        </g>
+
+        <!-- partículas de éxito -->
+        <g id="particles" class="particles" aria-hidden="true"></g>
+      </svg>
+    </div>
+
+    <p class="robot-caption" id="robotCaption" aria-live="polite">Tu compañero de misión</p>
+  </section>
+
+  <!-- -------- COLUMNA CONTENIDO -------- -->
+  <section class="content-column" aria-label="Contenido educativo">
+    <div class="slides" id="slidesContainer">
+
+      <!-- ================= SLIDE 1 — PORTADA ================= -->
+      <article class="slide" id="slide-1" data-slide="1">
+        <span class="eyebrow-icon" aria-hidden="true">🧠</span>
+        <h1 class="slide__title slide__title--hero">Técnicas de Prompting Estructurado</h1>
+        <p class="slide__subtitle">Domina la instrucción a Modelos de Lenguaje (LLMs) mediante Zero-shot y Few-shot</p>
+        <div class="cover-meta">
+          <label class="cover-meta__field">
+            <span>Nombre del estudiante</span>
+            <input type="text" id="studentName" placeholder="Escribe tu nombre" autocomplete="name">
+          </label>
+          <span class="cover-meta__date" id="coverDate"></span>
+        </div>
+        <button type="button" class="btn btn--primary btn--large" id="startMissionBtn">Comenzar misión</button>
+      </article>
+
+      <!-- ================= SLIDE 2 — INTRODUCCIÓN ================= -->
+      <article class="slide" id="slide-2" data-slide="2" hidden>
+        <h2 class="slide__title">¿Qué es el Prompting Estructurado?</h2>
+        <p class="slide__text">Es la práctica de diseñar instrucciones claras, guiadas y con formato definido para obtener respuestas precisas de una IA.</p>
+
+        <div class="card-grid">
+          <div class="info-card"><span class="info-card__icon">🎯</span><h3>Reduce alucinaciones</h3><p>Menos ambigüedad, menos invención por parte del modelo.</p></div>
+          <div class="info-card"><span class="info-card__icon">📐</span><h3>Mejora la consistencia</h3><p>Formatos de salida predecibles y repetibles.</p></div>
+          <div class="info-card"><span class="info-card__icon">⏱️</span><h3>Ahorra tiempo</h3><p>Menos iteraciones para llegar al resultado correcto.</p></div>
+        </div>
+
+        <div class="format-chips" aria-label="Formatos de ejemplo">
+          <span class="chip">JSON</span>
+          <span class="chip">LISTAS</span>
+          <span class="chip">TABLAS</span>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 3 — ZERO-SHOT ================= -->
+      <article class="slide" id="slide-3" data-slide="3" hidden>
+        <span class="tag tag--blue">Técnica 1</span>
+        <h2 class="slide__title">Zero-shot Prompting</h2>
+        <p class="slide__text">Solicitar a la IA que realice una tarea sin darle ningún ejemplo previo. La IA confía únicamente en su entrenamiento base.</p>
+
+        <h3 class="slide__subheading">¿Cuándo usarlo?</h3>
+        <ul class="bullet-list">
+          <li>Tareas sencillas</li>
+          <li>Traducción</li>
+          <li>Resumen</li>
+          <li>Clasificación básica</li>
+          <li>Respuestas rápidas</li>
+        </ul>
+
+        <div class="flow-diagram" aria-label="Diagrama: instrucción, IA, respuesta">
+          <div class="flow-node">INSTRUCCIÓN</div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-node flow-node--accent">IA</div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-node">RESPUESTA</div>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 4 — EJEMPLO ZERO-SHOT ================= -->
+      <article class="slide" id="slide-4" data-slide="4" hidden>
+        <span class="tag tag--blue">Ejemplo práctico</span>
+        <h2 class="slide__title">Clasificación de sentimiento</h2>
+        <p class="slide__text">Caso: clasificación de sentimiento en atención al cliente.</p>
+
+        <div class="prompt-box">
+          <span class="prompt-box__label">PROMPT</span>
+          <p>Clasifica el siguiente comentario en uno de estos tres sentimientos: [Positivo, Neutro, Negativo].</p>
+        </div>
+        <div class="prompt-box prompt-box--data">
+          <span class="prompt-box__label">TEXTO</span>
+          <p>"Llegó el producto dos días tarde, pero funciona excelente."</p>
+        </div>
+
+        <div class="exercise" id="ex-slide4" data-exercise="slide4">
+          <div class="options-row" role="group" aria-label="Selecciona un sentimiento">
+            <button type="button" class="option-btn" data-value="Positivo">Positivo</button>
+            <button type="button" class="option-btn" data-value="Neutro">Neutro</button>
+            <button type="button" class="option-btn" data-value="Negativo">Negativo</button>
+          </div>
+          <button type="button" class="btn btn--secondary" data-action="check-slide4">Comprobar</button>
+          <p class="exercise__feedback" data-feedback="slide4" role="status" aria-live="polite"></p>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 5 — FEW-SHOT ================= -->
+      <article class="slide" id="slide-5" data-slide="5" hidden>
+        <span class="tag tag--violet">Técnica 2</span>
+        <h2 class="slide__title">Few-shot Prompting</h2>
+        <p class="slide__text">Guiar a la IA proporcionándole uno o varios ejemplos (shots) de entrada y salida antes de hacer la pregunta final.</p>
+
+        <h3 class="slide__subheading">¿Cuándo usarlo?</h3>
+        <ul class="bullet-list">
+          <li>Formatos complejos</li>
+          <li>JSON</li>
+          <li>Tablas</li>
+          <li>Reglas de negocio</li>
+          <li>Estilo o tono específico</li>
+        </ul>
+
+        <div class="flow-diagram flow-diagram--long" aria-label="Diagrama few-shot">
+          <div class="flow-node">EJEMPLO 1</div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-node">EJEMPLO 2</div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-node">NUEVA ENTRADA</div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-node flow-node--accent-violet">IA</div>
+          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-node">RESPUESTA</div>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 6 — EJEMPLO FEW-SHOT ================= -->
+      <article class="slide" id="slide-6" data-slide="6" hidden>
+        <span class="tag tag--violet">Ejemplo práctico</span>
+        <h2 class="slide__title">Extracción de datos a JSON</h2>
+
+        <div class="shots-grid">
+          <div class="shot-card">
+            <span class="shot-card__label">Ejemplo 1</span>
+            <p class="shot-card__input">"Juan Perez vive en Madrid y tiene 30 años."</p>
+            <pre class="shot-card__output">{
+  "nombre": "Juan Perez",
+  "ciudad": "Madrid",
+  "edad": 30
+}</pre>
+          </div>
+          <div class="shot-card">
+            <span class="shot-card__label">Ejemplo 2</span>
+            <p class="shot-card__input">"Ana Gómez es de Barcelona, tiene 25 años."</p>
+            <pre class="shot-card__output">{
+  "nombre": "Ana Gómez",
+  "ciudad": "Barcelona",
+  "edad": 25
+}</pre>
+          </div>
+        </div>
+
+        <div class="prompt-box prompt-box--data">
+          <span class="prompt-box__label">AHORA HAZLO TÚ</span>
+          <p>"Carlos Ruiz vive en Valencia y acaba de cumplir 42 años."</p>
+        </div>
+
+        <div class="exercise" id="ex-slide6" data-exercise="slide6">
+          <label for="jsonInput" class="field-label">Escribe el JSON resultante</label>
+          <textarea id="jsonInput" class="json-textarea" rows="6" spellcheck="false" placeholder='{
+  "nombre": "",
+  "ciudad": "",
+  "edad": 0
+}'></textarea>
+          <button type="button" class="btn btn--secondary" data-action="check-slide6">Comprobar</button>
+          <p class="exercise__feedback" data-feedback="slide6" role="status" aria-live="polite"></p>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 7 — COMPARATIVA ================= -->
+      <article class="slide" id="slide-7" data-slide="7" hidden>
+        <h2 class="slide__title">Zero-shot vs Few-shot</h2>
+
+        <div class="table-wrap">
+          <table class="compare-table">
+            <thead>
+              <tr><th scope="col">Criterio</th><th scope="col">Zero-shot</th><th scope="col">Few-shot</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Complejidad del prompt</th><td>Bajo y directo</td><td>Medio / Alto</td></tr>
+              <tr><th scope="row">Consistencia de formato</th><td>Variable</td><td>Muy alta</td></tr>
+              <tr><th scope="row">Uso de tokens / costo</th><td>Menor consumo</td><td>Mayor consumo</td></tr>
+              <tr><th scope="row">Ideal para</th><td>Respuestas rápidas y tareas comunes</td><td>Integración en sistemas, APIs o formatos estrictos</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="exercise" id="ex-slide7" data-exercise="slide7">
+          <p class="field-label">¿Cuál elegirías para obtener siempre un JSON con estructura específica?</p>
+          <div class="options-row" role="group" aria-label="Elige una técnica">
+            <button type="button" class="option-btn" data-value="A">A) Zero-shot</button>
+            <button type="button" class="option-btn" data-value="B">B) Few-shot</button>
+          </div>
+          <button type="button" class="btn btn--secondary" data-action="check-slide7">Comprobar</button>
+          <p class="exercise__feedback" data-feedback="slide7" role="status" aria-live="polite"></p>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 8 — BUENAS PRÁCTICAS ================= -->
+      <article class="slide" id="slide-8" data-slide="8" hidden>
+        <h2 class="slide__title">Buenas prácticas para un prompting efectivo</h2>
+        <div class="card-grid">
+          <div class="info-card"><span class="info-card__icon">🧩</span><h3>Delimita el contexto</h3><p>Usa corchetes, comillas o etiquetas (###, ---) para separar instrucciones de datos.</p></div>
+          <div class="info-card"><span class="info-card__icon">📋</span><h3>Formato explícito</h3><p>Especifica si quieres la salida en Markdown, JSON, lista numerada o tabla.</p></div>
+          <div class="info-card"><span class="info-card__icon">✨</span><h3>Calidad sobre cantidad</h3><p>En Few-shot, 2 o 3 ejemplos claros y diversos son mejores que 10 repetitivos.</p></div>
+        </div>
+      </article>
+
+      <!-- ================= SLIDE 9 — CONCLUSIONES ================= -->
+      <article class="slide" id="slide-9" data-slide="9" hidden>
+        <h2 class="slide__title">Conclusiones</h2>
+        <p class="slide__text">Zero-shot es para rapidez y sencillez; Few-shot es para control y precisión.</p>
+
+        <div class="vs-grid">
+          <div class="vs-card vs-card--blue">
+            <h3>Zero-shot</h3>
+            <ul><li>Rapidez</li><li>Simplicidad</li><li>Tareas comunes</li></ul>
+          </div>
+          <div class="vs-divider" aria-hidden="true">VS</div>
+          <div class="vs-card vs-card--violet">
+            <h3>Few-shot</h3>
+            <ul><li>Control</li><li>Precisión</li><li>Formatos específicos</li></ul>
+          </div>
+        </div>
+
+        <p class="slide__closing">¿Listo para poner a prueba tus conocimientos?</p>
+        <button type="button" class="btn btn--primary btn--large" id="startEvalBtn">Comenzar evaluación</button>
+      </article>
+
+      <!-- ================= MÓDULO FINAL — MISIÓN DE EVALUACIÓN ================= -->
+      <article class="slide slide--eval" id="slide-eval" data-slide="eval" hidden>
+        <div class="eval-header">
+          <span class="eyebrow-icon" aria-hidden="true">🧠</span>
+          <h2 class="slide__title">Pon a prueba tus conocimientos</h2>
+          <p class="slide__subtitle">Completa los 5 desafíos para demostrar que dominas Zero-shot y Few-shot Prompting.</p>
+          <div class="eval-status" aria-live="polite">
+            <span id="evalChallengeLabel">Desafío 1 / 5</span>
+            <span id="evalScoreLabel">XP: 0/100</span>
+          </div>
+          <div class="hud__progress hud__progress--eval" role="progressbar" aria-label="Progreso de la evaluación" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="evalProgressBar">
+            <div class="hud__progress-fill" id="evalProgressFill"></div>
+          </div>
+        </div>
+
+        <div class="eval-challenges" id="evalChallenges">
+
+          <!-- DESAFÍO 1 -->
+          <div class="challenge" id="challenge-1" data-challenge="1">
+            <h3 class="challenge__title">Desafío 1 · Identificación de técnica</h3>
+            <p class="challenge__prompt">Un usuario envía el siguiente prompt a un modelo de lenguaje:</p>
+            <div class="prompt-box"><p>"Traduce el siguiente texto de español a francés: La tecnología avanza rápidamente."</p></div>
+            <p class="field-label">¿Qué técnica de prompting está utilizando?</p>
+            <div class="options-col" role="radiogroup" aria-label="Opciones desafío 1">
+              <button type="button" class="option-btn option-btn--block" data-value="A">A) Few-shot Prompting</button>
+              <button type="button" class="option-btn option-btn--block" data-value="B">B) Zero-shot Prompting</button>
+              <button type="button" class="option-btn option-btn--block" data-value="C">C) Chain-of-Thought (Cadena de Pensamiento)</button>
+              <button type="button" class="option-btn option-btn--block" data-value="D">D) Fine-tuning</button>
+            </div>
+            <button type="button" class="btn btn--secondary" data-action="check-1">Comprobar</button>
+            <div class="exercise__feedback" data-feedback="1" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn--primary challenge__next" data-next="2" hidden>Siguiente desafío →</button>
+          </div>
+
+          <!-- DESAFÍO 2 -->
+          <div class="challenge" id="challenge-2" data-challenge="2" hidden>
+            <h3 class="challenge__title">Desafío 2 · Rellenar espacio</h3>
+            <p class="challenge__prompt">Completa la frase con el término correcto: Zero-shot o Few-shot.</p>
+            <div class="prompt-box prompt-box--data">
+              <p>"Si necesitas que un LLM extraiga información y la devuelva estrictamente en un formato JSON personalizado sin cometer errores de sintaxis, la técnica más recomendada es emplear <strong>____________</strong> Prompting."</p>
+            </div>
+            <div class="options-row" role="group" aria-label="Opciones desafío 2">
+              <button type="button" class="option-btn" data-value="zero-shot">Zero-shot</button>
+              <button type="button" class="option-btn" data-value="few-shot">Few-shot</button>
+            </div>
+            <button type="button" class="btn btn--secondary" data-action="check-2">Comprobar</button>
+            <div class="exercise__feedback" data-feedback="2" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn--primary challenge__next" data-next="3" hidden>Siguiente desafío →</button>
+          </div>
+
+          <!-- DESAFÍO 3 -->
+          <div class="challenge" id="challenge-3" data-challenge="3" hidden>
+            <h3 class="challenge__title">Desafío 3 · Análisis de caso</h3>
+            <p class="challenge__prompt">Quieres clasificar tweets por su tono: Positivo, Negativo o Neutro.</p>
+            <div class="tweet-list">
+              <div class="tweet-row"><p>"El servicio fue pésimo y la comida fría."</p><span class="tweet-row__answer">→ Negativo</span></div>
+              <div class="tweet-row"><p>"Me encantó la atención, súper recomendados."</p><span class="tweet-row__answer">→ Positivo</span></div>
+              <div class="tweet-row tweet-row--pending"><p>"Llegué a las 5 pm como estaba pactado."</p><span class="tweet-row__answer">→ ______</span></div>
+            </div>
+            <p class="field-label">¿Cuál sería la respuesta correcta y qué técnica se aplicó?</p>
+            <div class="challenge3-grid">
+              <div>
+                <span class="field-sublabel">Sentimiento</span>
+                <div class="options-row" role="group" aria-label="Sentimiento" data-group="c3-sentiment">
+                  <button type="button" class="option-btn option-btn--small" data-value="Positivo">Positivo</button>
+                  <button type="button" class="option-btn option-btn--small" data-value="Negativo">Negativo</button>
+                  <button type="button" class="option-btn option-btn--small" data-value="Neutro">Neutro</button>
+                </div>
+              </div>
+              <div>
+                <span class="field-sublabel">Técnica</span>
+                <div class="options-row" role="group" aria-label="Técnica" data-group="c3-technique">
+                  <button type="button" class="option-btn option-btn--small" data-value="zero-shot">Zero-shot</button>
+                  <button type="button" class="option-btn option-btn--small" data-value="few-shot">Few-shot</button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn btn--secondary" data-action="check-3">Comprobar</button>
+            <div class="exercise__feedback" data-feedback="3" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn--primary challenge__next" data-next="4" hidden>Siguiente desafío →</button>
+          </div>
+
+          <!-- DESAFÍO 4 -->
+          <div class="challenge" id="challenge-4" data-challenge="4" hidden>
+            <h3 class="challenge__title">Desafío 4 · Transforma la técnica</h3>
+            <p class="challenge__prompt">Transforma el siguiente prompt de Zero-shot a Few-shot.</p>
+            <div class="prompt-box">
+              <p>"Convierte el siguiente nombre completo en formato 'Apellido, Inicial del Nombre': 'Carlos Mendoza'."</p>
+            </div>
+            <label for="fewShotBuilder" class="field-label">Construye tu versión Few-shot</label>
+            <textarea id="fewShotBuilder" class="json-textarea" rows="7" placeholder='Ejemplo 1:
+"Ana Torres" -> Torres, A.
+
+Ejemplo 2:
+"Roberto Gómez" -> Gómez, R.
+
+Tarea:
+"Carlos Mendoza" -> '></textarea>
+            <button type="button" class="btn btn--secondary" data-action="check-4">Comprobar</button>
+            <div class="exercise__feedback" data-feedback="4" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn--primary challenge__next" data-next="5" hidden>Siguiente desafío →</button>
+          </div>
+
+          <!-- DESAFÍO 5 -->
+          <div class="challenge" id="challenge-5" data-challenge="5" hidden>
+            <h3 class="challenge__title">Desafío 5 · Verdadero o falso</h3>
+            <div class="prompt-box">
+              <p>"El Few-shot Prompting consume menos tokens (texto de entrada) que el Zero-shot Prompting, por lo tanto es más económico de procesar."</p>
+            </div>
+            <div class="options-row" role="group" aria-label="Opciones desafío 5">
+              <button type="button" class="option-btn" data-value="V">Verdadero</button>
+              <button type="button" class="option-btn" data-value="F">Falso</button>
+            </div>
+            <button type="button" class="btn btn--secondary" data-action="check-5">Comprobar</button>
+            <div class="exercise__feedback" data-feedback="5" role="status" aria-live="polite"></div>
+            <button type="button" class="btn btn--primary challenge__next" data-next="result">Ver resultado final →</button>
+          </div>
+
+          <!-- RESULTADO FINAL -->
+          <div class="challenge challenge--result" id="challenge-result" data-challenge="result" hidden>
+            <h3 class="challenge__title challenge__title--victory">Misión completada</h3>
+            <div class="result-score">
+              <span class="result-score__value" id="resultScore">0 / 100 XP</span>
+              <span class="result-score__hits" id="resultHits">0 / 5 aciertos</span>
+              <span class="result-score__pct" id="resultPct">0%</span>
+            </div>
+            <p class="result-message" id="resultMessage"></p>
+            <button type="button" class="btn btn--primary btn--large" id="restartFromResultBtn">Volver al inicio</button>
+          </div>
+
+        </div>
+      </article>
+
+    </div>
+
+    <!-- ================= NAVEGACIÓN ================= -->
+    <nav class="slide-nav" aria-label="Navegación de lecciones" id="slideNav">
+      <button type="button" class="btn btn--ghost" id="prevBtn" aria-label="Diapositiva anterior">← Anterior</button>
+      <button type="button" class="btn btn--primary" id="nextBtn" aria-label="Siguiente diapositiva">Siguiente →</button>
+    </nav>
+  </section>
+</main>
+
+<!-- ============================================================
+     MODAL DE INSIGNIAS
+     ============================================================ -->
+<div class="modal-overlay" id="badgesModal" role="dialog" aria-modal="true" aria-labelledby="badgesModalTitle" hidden>
+  <div class="modal">
+    <h2 id="badgesModalTitle">Insignias</h2>
+    <div class="badges-grid" id="badgesGrid">
+      <div class="badge-item" data-badge="explorer"><span class="badge-item__icon">🏆</span><span class="badge-item__name">Explorador de Prompts</span></div>
+      <div class="badge-item" data-badge="zero"><span class="badge-item__icon">🔵</span><span class="badge-item__name">Maestro Zero-shot</span></div>
+      <div class="badge-item" data-badge="few"><span class="badge-item__icon">🟣</span><span class="badge-item__name">Maestro Few-shot</span></div>
+      <div class="badge-item" data-badge="analyst"><span class="badge-item__icon">🧠</span><span class="badge-item__name">Analista de Prompts</span></div>
+      <div class="badge-item" data-badge="architect"><span class="badge-item__icon">🏆</span><span class="badge-item__name">Arquitecto de Prompts</span></div>
+    </div>
+    <button type="button" class="btn btn--secondary" data-close-modal="badgesModal">Cerrar</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL DE CONFIRMACIÓN DE REINICIO
+     ============================================================ -->
+<div class="modal-overlay" id="resetModal" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle" hidden>
+  <div class="modal">
+    <h2 id="resetModalTitle">¿Seguro que quieres reiniciar tu progreso?</h2>
+    <p>Se borrará tu XP, insignias y avance de lecciones. Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn--ghost" data-close-modal="resetModal">Cancelar</button>
+      <button type="button" class="btn btn--danger" id="confirmResetBtn">Sí, reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Región para anuncios de accesibilidad (XP, insignias, estados) -->
+<div id="srAnnouncer" class="sr-only" role="status" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
