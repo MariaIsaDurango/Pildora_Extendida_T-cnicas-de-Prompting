@@ -674,7 +674,6 @@
     });
 
     $('#startMissionBtn').addEventListener('click', () => {
-      state.studentName = $('#studentName').value.trim();
       Sound.click();
       unlockBadge('explorer');
       setRobotState('explaining');
@@ -732,8 +731,6 @@
     renderBadges(false);
     $('#soundBtn').textContent = state.soundOn ? '🔊' : '🔇';
     $('#soundBtn').setAttribute('aria-pressed', String(state.soundOn));
-    if (state.studentName) $('#studentName').value = state.studentName;
-
     $('#coverDate').textContent = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 
     // Restaura marcas visuales de ejercicios ya completados en las slides de contenido

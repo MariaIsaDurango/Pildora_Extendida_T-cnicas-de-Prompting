@@ -145,10 +145,6 @@
         <h1 class="slide__title slide__title--hero">Técnicas de Prompting Estructurado</h1>
         <p class="slide__subtitle">Domina la instrucción a Modelos de Lenguaje (LLMs) mediante Zero-shot y Few-shot</p>
         <div class="cover-meta">
-          <label class="cover-meta__field">
-            <span>Nombre del estudiante</span>
-            <input type="text" id="studentName" placeholder="Escribe tu nombre" autocomplete="name">
-          </label>
           <span class="cover-meta__date" id="coverDate"></span>
         </div>
         <button type="button" class="btn btn--primary btn--large" id="startMissionBtn">Comenzar misión</button>
@@ -165,10 +161,16 @@
           <div class="info-card"><span class="info-card__icon">⏱️</span><h3>Ahorra tiempo</h3><p>Menos iteraciones para llegar al resultado correcto.</p></div>
         </div>
 
-        <div class="format-chips" aria-label="Formatos de ejemplo">
-          <span class="chip">JSON</span>
-          <span class="chip">LISTAS</span>
-          <span class="chip">TABLAS</span>
+        <p class="format-chips-intro">Pasa el cursor (o el foco) sobre cada formato para ver cómo se le pediría a la IA:</p>
+        <div class="format-chips" aria-label="Formatos de ejemplo, con muestra al enfocar">
+          <button type="button" class="chip" aria-describedby="chipTipJson">JSON</button>
+          <span class="chip-tooltip" id="chipTipJson" role="tooltip">"Responde en formato JSON con las claves nombre y edad."</span>
+
+          <button type="button" class="chip" aria-describedby="chipTipList">LISTAS</button>
+          <span class="chip-tooltip" id="chipTipList" role="tooltip">"Dame la respuesta como una lista numerada de 3 puntos."</span>
+
+          <button type="button" class="chip" aria-describedby="chipTipTable">TABLAS</button>
+          <span class="chip-tooltip" id="chipTipTable" role="tooltip">"Preséntalo en una tabla con columnas Producto y Precio."</span>
         </div>
       </article>
 
@@ -237,15 +239,17 @@
           <li>Estilo o tono específico</li>
         </ul>
 
-        <div class="flow-diagram flow-diagram--long" aria-label="Diagrama few-shot">
-          <div class="flow-node">EJEMPLO 1</div>
-          <div class="flow-arrow" aria-hidden="true">↓</div>
-          <div class="flow-node">EJEMPLO 2</div>
-          <div class="flow-arrow" aria-hidden="true">↓</div>
-          <div class="flow-node">NUEVA ENTRADA</div>
-          <div class="flow-arrow" aria-hidden="true">↓</div>
+        <p class="diagram-note">Todo lo de abajo se envía <strong>junto, en un solo mensaje</strong> — no son pasos separados en el tiempo.</p>
+        <div class="prompt-block-diagram" aria-label="Diagrama few-shot: un único prompt con varias partes">
+          <div class="prompt-block">
+            <span class="prompt-block__label">UN SOLO PROMPT</span>
+            <div class="prompt-block__item">Ejemplo 1</div>
+            <div class="prompt-block__item">Ejemplo 2</div>
+            <div class="prompt-block__item prompt-block__item--accent">Nueva entrada (la pregunta real)</div>
+          </div>
+          <div class="flow-arrow flow-arrow--h" aria-hidden="true">→</div>
           <div class="flow-node flow-node--accent-violet">IA</div>
-          <div class="flow-arrow" aria-hidden="true">↓</div>
+          <div class="flow-arrow flow-arrow--h" aria-hidden="true">→</div>
           <div class="flow-node">RESPUESTA</div>
         </div>
       </article>
@@ -278,8 +282,9 @@
 
         <div class="prompt-box prompt-box--data">
           <span class="prompt-box__label">AHORA HAZLO TÚ</span>
-          <p>"Carlos Ruiz vive en Valencia y acaba de cumplir 42 años."</p>
+          <p>"Con 42 años recién cumplidos, Carlos Ruiz reside en la ciudad de Valencia."</p>
         </div>
+        <p class="exercise-hint">Fíjate: los datos ya no vienen en el mismo orden que en los ejemplos. Tendrás que identificar qué dato es cuál, no solo copiarlos en orden.</p>
 
         <div class="exercise" id="ex-slide6" data-exercise="slide6">
           <label for="jsonInput" class="field-label">Escribe el JSON resultante</label>
@@ -351,6 +356,15 @@
 
         <p class="slide__closing">¿Listo para poner a prueba tus conocimientos?</p>
         <button type="button" class="btn btn--primary btn--large" id="startEvalBtn">Comenzar evaluación</button>
+
+        <div class="resources-box">
+          <h3 class="resources-box__title">📓 Retos para practicar en Google Colab</h3>
+          <p class="resources-box__text">Descarga estos notebooks para seguir practicando fuera de la web. No necesitan ninguna clave de API.</p>
+          <div class="resources-box__links">
+            <a class="btn btn--secondary" href="Reto_Prompting_Estructurado.ipynb" download>⬇ Reto de evaluación (autocorregido)</a>
+            <a class="btn btn--secondary" href="Reto_Practico_Zero_Few_Shot.ipynb" download>⬇ Reto práctico (escribir prompts)</a>
+          </div>
+        </div>
       </article>
 
       <!-- ================= MÓDULO FINAL — MISIÓN DE EVALUACIÓN ================= -->

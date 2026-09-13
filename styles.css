@@ -323,12 +323,46 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .info-card h3 { font-size: 1rem; margin: 10px 0 6px; }
 .info-card p { font-size: 0.88rem; margin: 0; }
 
-.format-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+.format-chips-intro { font-size: 0.82rem; color: var(--grey-dim); margin-bottom: 8px; }
+.format-chips { display: flex; gap: 10px; flex-wrap: wrap; position: relative; }
 .chip {
   background: #14192B; border: 1px solid var(--border-soft); color: var(--cyan);
   font-family: var(--font-display); font-size: 0.78rem; font-weight: 600;
-  padding: 6px 14px; border-radius: 8px;
+  padding: 6px 14px; border-radius: 8px; cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
 }
+.chip:hover, .chip:focus-visible { border-color: var(--cyan); transform: translateY(-2px); }
+.chip-tooltip {
+  display: none;
+  position: absolute; top: calc(100% + 8px); left: 0;
+  background: #0E1424; border: 1px solid var(--cyan); border-radius: var(--radius-s);
+  padding: 8px 12px; font-size: 0.78rem; color: var(--white);
+  max-width: 320px; z-index: 5; box-shadow: 0 10px 24px -10px #000;
+}
+.chip:hover + .chip-tooltip,
+.chip:focus-visible + .chip-tooltip { display: block; }
+
+/* Nota aclaratoria sobre ejercicios */
+.diagram-note { font-size: 0.85rem; color: var(--grey-dim); margin-top: 1.2em; }
+.exercise-hint { font-size: 0.82rem; color: var(--cyan); margin: -8px 0 14px; }
+
+/* Diagrama de prompt único (few-shot) */
+.prompt-block-diagram {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin: 16px 0 26px;
+}
+.prompt-block {
+  background: #10162A; border: 1px solid var(--violet); border-radius: var(--radius-m);
+  padding: 14px; display: flex; flex-direction: column; gap: 8px; min-width: 220px;
+  box-shadow: 0 0 24px -12px var(--violet);
+}
+.prompt-block__label { font-size: 0.66rem; letter-spacing: 0.06em; color: #C6B4FF; font-weight: 700; }
+.prompt-block__item {
+  background: #0E1424; border: 1px solid var(--border-soft); border-radius: 8px;
+  padding: 8px 10px; font-size: 0.82rem;
+}
+.prompt-block__item--accent { border-color: var(--cyan); color: var(--cyan); }
+.flow-arrow--h { font-size: 1.2rem; }
 
 .bullet-list li { margin-bottom: 4px; }
 
@@ -404,6 +438,15 @@ textarea:focus-visible, [tabindex]:focus-visible {
 .vs-card--violet { border-color: var(--violet); }
 .vs-card ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
 .vs-divider { font-family: var(--font-display); font-weight: 700; color: var(--grey-dim); }
+
+/* Caja de recursos descargables (notebooks de Colab) */
+.resources-box {
+  margin-top: 28px; padding: 20px; border-radius: var(--radius-m);
+  background: #10162A; border: 1px solid var(--border-soft);
+}
+.resources-box__title { font-size: 1rem; margin-bottom: 6px; }
+.resources-box__text { font-size: 0.85rem; color: var(--grey-dim); margin-bottom: 14px; }
+.resources-box__links { display: flex; gap: 12px; flex-wrap: wrap; }
 
 /* ---------- 8. BOTONES ---------- */
 .btn {
@@ -528,6 +571,10 @@ textarea:focus-visible, [tabindex]:focus-visible {
   .vs-grid { grid-template-columns: 1fr; }
   .vs-divider { justify-self: center; }
   .challenge3-grid { grid-template-columns: 1fr; }
+  .prompt-block-diagram { flex-direction: column; align-items: stretch; }
+  .prompt-block { min-width: 0; }
+  .flow-arrow--h { align-self: center; transform: rotate(90deg); }
+  .chip-tooltip { max-width: 100%; }
   .hud { gap: 10px; padding: 0 12px; }
   .hud__brand-text { display: none; }
   .hud__center { max-width: none; }
