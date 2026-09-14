@@ -354,9 +354,6 @@
           </div>
         </div>
 
-        <p class="slide__closing">¿Listo para poner a prueba tus conocimientos?</p>
-        <button type="button" class="btn btn--primary btn--large" id="startEvalBtn">Comenzar evaluación</button>
-
         <div class="resources-box">
           <h3 class="resources-box__title">📓 Retos para practicar en Google Colab</h3>
           <p class="resources-box__text">Descarga estos notebooks para seguir practicando fuera de la web. No necesitan ninguna clave de API.</p>
@@ -367,137 +364,12 @@
         </div>
       </article>
 
-      <!-- ================= MÓDULO FINAL — MISIÓN DE EVALUACIÓN ================= -->
-      <article class="slide slide--eval" id="slide-eval" data-slide="eval" hidden>
-        <div class="eval-header">
-          <span class="eyebrow-icon" aria-hidden="true">🧠</span>
-          <h2 class="slide__title">Pon a prueba tus conocimientos</h2>
-          <p class="slide__subtitle">Completa los 5 desafíos para demostrar que dominas Zero-shot y Few-shot Prompting.</p>
-          <div class="eval-status" aria-live="polite">
-            <span id="evalChallengeLabel">Desafío 1 / 5</span>
-            <span id="evalScoreLabel">XP: 0/100</span>
-          </div>
-          <div class="hud__progress hud__progress--eval" role="progressbar" aria-label="Progreso de la evaluación" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="evalProgressBar">
-            <div class="hud__progress-fill" id="evalProgressFill"></div>
-          </div>
-        </div>
-
-        <div class="eval-challenges" id="evalChallenges">
-
-          <!-- DESAFÍO 1 -->
-          <div class="challenge" id="challenge-1" data-challenge="1">
-            <h3 class="challenge__title">Desafío 1 · Identificación de técnica</h3>
-            <p class="challenge__prompt">Un usuario envía el siguiente prompt a un modelo de lenguaje:</p>
-            <div class="prompt-box"><p>"Traduce el siguiente texto de español a francés: La tecnología avanza rápidamente."</p></div>
-            <p class="field-label">¿Qué técnica de prompting está utilizando?</p>
-            <div class="options-col" role="radiogroup" aria-label="Opciones desafío 1">
-              <button type="button" class="option-btn option-btn--block" data-value="A">A) Few-shot Prompting</button>
-              <button type="button" class="option-btn option-btn--block" data-value="B">B) Zero-shot Prompting</button>
-              <button type="button" class="option-btn option-btn--block" data-value="C">C) Chain-of-Thought (Cadena de Pensamiento)</button>
-              <button type="button" class="option-btn option-btn--block" data-value="D">D) Fine-tuning</button>
-            </div>
-            <button type="button" class="btn btn--secondary" data-action="check-1">Comprobar</button>
-            <div class="exercise__feedback" data-feedback="1" role="status" aria-live="polite"></div>
-            <button type="button" class="btn btn--primary challenge__next" data-next="2" hidden>Siguiente desafío →</button>
-          </div>
-
-          <!-- DESAFÍO 2 -->
-          <div class="challenge" id="challenge-2" data-challenge="2" hidden>
-            <h3 class="challenge__title">Desafío 2 · Rellenar espacio</h3>
-            <p class="challenge__prompt">Completa la frase con el término correcto: Zero-shot o Few-shot.</p>
-            <div class="prompt-box prompt-box--data">
-              <p>"Si necesitas que un LLM extraiga información y la devuelva estrictamente en un formato JSON personalizado sin cometer errores de sintaxis, la técnica más recomendada es emplear <strong>____________</strong> Prompting."</p>
-            </div>
-            <div class="options-row" role="group" aria-label="Opciones desafío 2">
-              <button type="button" class="option-btn" data-value="zero-shot">Zero-shot</button>
-              <button type="button" class="option-btn" data-value="few-shot">Few-shot</button>
-            </div>
-            <button type="button" class="btn btn--secondary" data-action="check-2">Comprobar</button>
-            <div class="exercise__feedback" data-feedback="2" role="status" aria-live="polite"></div>
-            <button type="button" class="btn btn--primary challenge__next" data-next="3" hidden>Siguiente desafío →</button>
-          </div>
-
-          <!-- DESAFÍO 3 -->
-          <div class="challenge" id="challenge-3" data-challenge="3" hidden>
-            <h3 class="challenge__title">Desafío 3 · Análisis de caso</h3>
-            <p class="challenge__prompt">Quieres clasificar tweets por su tono: Positivo, Negativo o Neutro.</p>
-            <div class="tweet-list">
-              <div class="tweet-row"><p>"El servicio fue pésimo y la comida fría."</p><span class="tweet-row__answer">→ Negativo</span></div>
-              <div class="tweet-row"><p>"Me encantó la atención, súper recomendados."</p><span class="tweet-row__answer">→ Positivo</span></div>
-              <div class="tweet-row tweet-row--pending"><p>"Llegué a las 5 pm como estaba pactado."</p><span class="tweet-row__answer">→ ______</span></div>
-            </div>
-            <p class="field-label">¿Cuál sería la respuesta correcta y qué técnica se aplicó?</p>
-            <div class="challenge3-grid">
-              <div>
-                <span class="field-sublabel">Sentimiento</span>
-                <div class="options-row" role="group" aria-label="Sentimiento" data-group="c3-sentiment">
-                  <button type="button" class="option-btn option-btn--small" data-value="Positivo">Positivo</button>
-                  <button type="button" class="option-btn option-btn--small" data-value="Negativo">Negativo</button>
-                  <button type="button" class="option-btn option-btn--small" data-value="Neutro">Neutro</button>
-                </div>
-              </div>
-              <div>
-                <span class="field-sublabel">Técnica</span>
-                <div class="options-row" role="group" aria-label="Técnica" data-group="c3-technique">
-                  <button type="button" class="option-btn option-btn--small" data-value="zero-shot">Zero-shot</button>
-                  <button type="button" class="option-btn option-btn--small" data-value="few-shot">Few-shot</button>
-                </div>
-              </div>
-            </div>
-            <button type="button" class="btn btn--secondary" data-action="check-3">Comprobar</button>
-            <div class="exercise__feedback" data-feedback="3" role="status" aria-live="polite"></div>
-            <button type="button" class="btn btn--primary challenge__next" data-next="4" hidden>Siguiente desafío →</button>
-          </div>
-
-          <!-- DESAFÍO 4 -->
-          <div class="challenge" id="challenge-4" data-challenge="4" hidden>
-            <h3 class="challenge__title">Desafío 4 · Transforma la técnica</h3>
-            <p class="challenge__prompt">Transforma el siguiente prompt de Zero-shot a Few-shot.</p>
-            <div class="prompt-box">
-              <p>"Convierte el siguiente nombre completo en formato 'Apellido, Inicial del Nombre': 'Carlos Mendoza'."</p>
-            </div>
-            <label for="fewShotBuilder" class="field-label">Construye tu versión Few-shot</label>
-            <textarea id="fewShotBuilder" class="json-textarea" rows="7" placeholder='Ejemplo 1:
-"Ana Torres" -> Torres, A.
-
-Ejemplo 2:
-"Roberto Gómez" -> Gómez, R.
-
-Tarea:
-"Carlos Mendoza" -> '></textarea>
-            <button type="button" class="btn btn--secondary" data-action="check-4">Comprobar</button>
-            <div class="exercise__feedback" data-feedback="4" role="status" aria-live="polite"></div>
-            <button type="button" class="btn btn--primary challenge__next" data-next="5" hidden>Siguiente desafío →</button>
-          </div>
-
-          <!-- DESAFÍO 5 -->
-          <div class="challenge" id="challenge-5" data-challenge="5" hidden>
-            <h3 class="challenge__title">Desafío 5 · Verdadero o falso</h3>
-            <div class="prompt-box">
-              <p>"El Few-shot Prompting consume menos tokens (texto de entrada) que el Zero-shot Prompting, por lo tanto es más económico de procesar."</p>
-            </div>
-            <div class="options-row" role="group" aria-label="Opciones desafío 5">
-              <button type="button" class="option-btn" data-value="V">Verdadero</button>
-              <button type="button" class="option-btn" data-value="F">Falso</button>
-            </div>
-            <button type="button" class="btn btn--secondary" data-action="check-5">Comprobar</button>
-            <div class="exercise__feedback" data-feedback="5" role="status" aria-live="polite"></div>
-            <button type="button" class="btn btn--primary challenge__next" data-next="result">Ver resultado final →</button>
-          </div>
-
-          <!-- RESULTADO FINAL -->
-          <div class="challenge challenge--result" id="challenge-result" data-challenge="result" hidden>
-            <h3 class="challenge__title challenge__title--victory">Misión completada</h3>
-            <div class="result-score">
-              <span class="result-score__value" id="resultScore">0 / 100 XP</span>
-              <span class="result-score__hits" id="resultHits">0 / 5 aciertos</span>
-              <span class="result-score__pct" id="resultPct">0%</span>
-            </div>
-            <p class="result-message" id="resultMessage"></p>
-            <button type="button" class="btn btn--primary btn--large" id="restartFromResultBtn">Volver al inicio</button>
-          </div>
-
-        </div>
+      <!-- ================= SLIDE 10 — CIERRE ================= -->
+      <article class="slide" id="slide-10" data-slide="10" hidden>
+        <span class="eyebrow-icon" aria-hidden="true">🎉</span>
+        <h2 class="slide__title">¡Misión completada!</h2>
+        <p class="slide__closing">¡Ya conoces las bases del Prompting Estructurado!</p>
+        <p class="slide__closing slide__closing--thanks">¡Gracias por tu atención y por completar la misión!</p>
       </article>
 
     </div>
@@ -520,8 +392,6 @@ Tarea:
       <div class="badge-item" data-badge="explorer"><span class="badge-item__icon">🏆</span><span class="badge-item__name">Explorador de Prompts</span></div>
       <div class="badge-item" data-badge="zero"><span class="badge-item__icon">🔵</span><span class="badge-item__name">Maestro Zero-shot</span></div>
       <div class="badge-item" data-badge="few"><span class="badge-item__icon">🟣</span><span class="badge-item__name">Maestro Few-shot</span></div>
-      <div class="badge-item" data-badge="analyst"><span class="badge-item__icon">🧠</span><span class="badge-item__name">Analista de Prompts</span></div>
-      <div class="badge-item" data-badge="architect"><span class="badge-item__icon">🏆</span><span class="badge-item__name">Arquitecto de Prompts</span></div>
     </div>
     <button type="button" class="btn btn--secondary" data-close-modal="badgesModal">Cerrar</button>
   </div>

@@ -2,7 +2,7 @@
    PROMPTING LAB — SCRIPT.JS
    SPA sencilla sin frameworks. Organizado en módulos por
    responsabilidad: estado, robot, navegación, gamificación,
-   evaluación, persistencia y sonido.
+   persistencia y sonido.
    ============================================================ */
 
 (function () {
@@ -13,35 +13,22 @@
      ========================================================== */
   const STORAGE_KEY = 'promptingLabProgress_v1';
 
-  const SLIDE_ORDER = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'eval'];
-  const CHALLENGE_ORDER = ['1', '2', '3', '4', '5', 'result'];
+  const SLIDE_ORDER = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
   const state = {
     currentSlide: '1',
-    currentChallenge: '1',
     xp: 0,
-    evalXp: 0,
     badges: {
       explorer: false,
       zero: false,
-      few: false,
-      analyst: false,
-      architect: false
+      few: false
     },
     completedExercises: {
       slide4: false,
       slide6: false,
       slide7: false
     },
-    completedChallenges: {
-      1: false,
-      2: false,
-      3: false,
-      4: false,
-      5: false
-    },
-    soundOn: false,
-    studentName: ''
+    soundOn: false
   };
 
   /* ==========================================================
@@ -192,10 +179,13 @@
       setRobotState('walk');
     }
 
-    // El robot "explica" en slides de contenido puro y "espera" en las de ejercicio
+    // El robot "explica" en slides de contenido puro, "espera" en las de
+    // ejercicio, y "celebra" en la última diapositiva (cierre de la misión).
     const exerciseSlides = ['4', '6', '7'];
+    const isLastSlide = id === SLIDE_ORDER[SLIDE_ORDER.length - 1];
     setTimeout(() => {
-      setRobotState(exerciseSlides.includes(id) ? 'exercise' : (id === 'eval' ? 'exercise' : 'explaining'));
+      if (isLastSlide) setRobotState('victory');
+      else setRobotState(exerciseSlides.includes(id) ? 'exercise' : 'explaining');
     }, id && !opts.silent ? 950 : 0);
 
     updateNavButtons();
@@ -222,24 +212,20 @@
   }
 
   function updateNavButtons() {
-    const nav = $('#slideNav');
     const prevBtn = $('#prevBtn');
     const nextBtn = $('#nextBtn');
-    if (state.currentSlide === 'eval') { nav.style.display = 'none'; return; }
-    nav.style.display = 'flex';
-    prevBtn.disabled = state.currentSlide === '1';
-    nextBtn.textContent = state.currentSlide === '9' ? 'Ir a evaluación →' : 'Siguiente →';
+    prevBtn.disabled = state.currentSlide === SLIDE_ORDER[0];
+    const esUltima = state.currentSlide === SLIDE_ORDER[SLIDE_ORDER.length - 1];
+    nextBtn.disabled = esUltima;
+    nextBtn.textContent = 'Siguiente →';
   }
 
   function updateHud() {
     const idx = SLIDE_ORDER.indexOf(state.currentSlide);
-    const totalContentSlides = 9;
-    const lessonNum = Math.min(idx + 1, totalContentSlides);
-    $('#hudLessonLabel').textContent = state.currentSlide === 'eval'
-      ? 'Evaluación final'
-      : `Lección ${lessonNum} / 9`;
+    const total = SLIDE_ORDER.length;
+    $('#hudLessonLabel').textContent = `Lección ${idx + 1} / ${total}`;
 
-    const pct = state.currentSlide === 'eval' ? 100 : Math.round((lessonNum / totalContentSlides) * 100);
+    const pct = Math.round(((idx + 1) / total) * 100);
     $('#hudProgressFill').style.width = pct + '%';
     $('#hudProgressBar').setAttribute('aria-valuenow', String(pct));
     $('#hudXp').textContent = String(state.xp);
@@ -273,9 +259,7 @@
     const names = {
       explorer: 'Explorador de Prompts',
       zero: 'Maestro Zero-shot',
-      few: 'Maestro Few-shot',
-      analyst: 'Analista de Prompts',
-      architect: 'Arquitecto de Prompts'
+      few: 'Maestro Few-shot'
     };
     showFloatingToast(`🏅 Insignia desbloqueada: ${names[key]}`);
     announce(`Insignia desbloqueada: ${names[key]}.`);
@@ -301,14 +285,10 @@
     try {
       const data = {
         currentSlide: state.currentSlide,
-        currentChallenge: state.currentChallenge,
         xp: state.xp,
-        evalXp: state.evalXp,
         badges: state.badges,
         completedExercises: state.completedExercises,
-        completedChallenges: state.completedChallenges,
-        soundOn: state.soundOn,
-        studentName: state.studentName
+        soundOn: state.soundOn
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -323,13 +303,9 @@
       const data = JSON.parse(raw);
       Object.assign(state.badges, data.badges || {});
       Object.assign(state.completedExercises, data.completedExercises || {});
-      Object.assign(state.completedChallenges, data.completedChallenges || {});
       state.xp = typeof data.xp === 'number' ? data.xp : 0;
-      state.evalXp = typeof data.evalXp === 'number' ? data.evalXp : 0;
       state.soundOn = !!data.soundOn;
-      state.studentName = data.studentName || '';
-      state.currentSlide = data.currentSlide || '1';
-      state.currentChallenge = data.currentChallenge || '1';
+      state.currentSlide = data.currentSlide && SLIDE_ORDER.includes(data.currentSlide) ? data.currentSlide : '1';
     } catch (e) {
       console.warn('No se pudo cargar el progreso guardado:', e);
     }
@@ -462,190 +438,7 @@
   }
 
   /* ==========================================================
-     9. MÓDULO DE EVALUACIÓN FINAL (5 desafíos)
-     ========================================================== */
-  function showChallenge(id) {
-    CHALLENGE_ORDER.forEach((c) => {
-      const el = document.getElementById('challenge-' + c);
-      if (el) el.hidden = (c !== id);
-    });
-    state.currentChallenge = id;
-    saveProgress();
-
-    const idx = CHALLENGE_ORDER.indexOf(id);
-    const totalChallenges = 5;
-    if (id !== 'result') {
-      $('#evalChallengeLabel').textContent = `Desafío ${idx + 1} / 5`;
-    }
-    const pct = id === 'result' ? 100 : Math.round((idx / totalChallenges) * 100);
-    $('#evalProgressFill').style.width = pct + '%';
-    $('#evalProgressBar').setAttribute('aria-valuenow', String(pct));
-    $('#evalScoreLabel').textContent = `XP: ${state.evalXp}/100`;
-
-    setRobotState(id === 'result' ? 'victory' : 'exercise');
-
-    if (id === 'result') renderResult();
-
-    const heading = document.getElementById('challenge-' + id)?.querySelector('h3');
-    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
-  }
-
-  function markChallengeSolved(numKey, xpAmount) {
-    if (state.completedChallenges[numKey]) return false; // evita sumar XP repetido
-    state.completedChallenges[numKey] = true;
-    state.evalXp += xpAmount;
-    $('#evalScoreLabel').textContent = `XP: ${state.evalXp}/100`;
-    showFloatingToast(`+${xpAmount} XP`);
-    saveProgress();
-    return true;
-  }
-
-  function showChallengeNext(numKey) {
-    const challengeEl = document.getElementById('challenge-' + numKey);
-    const nextBtn = $('.challenge__next', challengeEl);
-    if (nextBtn) nextBtn.hidden = false;
-  }
-
-  // ---- Desafío 1: identificación de técnica ----
-  let c1Selection = null;
-  function initChallenge1() {
-    const container = $('#challenge-1');
-    initOptionGroup(container, (v) => { c1Selection = v; });
-    $('[data-action="check-1"]', container).addEventListener('click', () => {
-      if (!c1Selection) { setFeedback('1', 'Elige una opción.', false); return; }
-      const correct = c1Selection === 'B';
-      markOptionResult(container, 'B', c1Selection);
-      if (correct) {
-        setFeedback('1', 'Correcto: no se dio ningún ejemplo previo, solo una instrucción directa. Eso es Zero-shot Prompting.', true);
-        setRobotState('success'); Sound.success();
-        if (markChallengeSolved(1, 20)) unlockBadge('zero');
-        showChallengeNext('1');
-      } else {
-        setFeedback('1', 'No es correcta. Recuerda: no hay ejemplos de entrada/salida, solo una instrucción directa — eso descarta Few-shot, Chain-of-Thought y Fine-tuning.', false);
-        setRobotState('error'); Sound.error(); shakeElement(container);
-      }
-    });
-  }
-
-  // ---- Desafío 2: rellenar espacio ----
-  let c2Selection = null;
-  function initChallenge2() {
-    const container = $('#challenge-2');
-    initOptionGroup(container, (v) => { c2Selection = v; });
-    $('[data-action="check-2"]', container).addEventListener('click', () => {
-      if (!c2Selection) { setFeedback('2', 'Elige una opción.', false); return; }
-      const correct = c2Selection === 'few-shot';
-      markOptionResult(container, 'few-shot', c2Selection);
-      if (correct) {
-        setFeedback('2', 'Correcto: incluir ejemplos previos ayuda al modelo a replicar el formato JSON deseado.', true);
-        setRobotState('success'); Sound.success();
-        markChallengeSolved(2, 20);
-        showChallengeNext('2');
-      } else {
-        setFeedback('2', 'Zero-shot no da ejemplos de formato, así que es más propenso a errores de sintaxis en JSON. La respuesta correcta es Few-shot.', false);
-        setRobotState('error'); Sound.error(); shakeElement(container);
-      }
-    });
-  }
-
-  // ---- Desafío 3: análisis de caso ----
-  let c3Sentiment = null;
-  let c3Technique = null;
-  function initChallenge3() {
-    const container = $('#challenge-3');
-    const sentimentGroup = $('[data-group="c3-sentiment"]', container);
-    const techniqueGroup = $('[data-group="c3-technique"]', container);
-    initOptionGroup(sentimentGroup, (v) => { c3Sentiment = v; });
-    initOptionGroup(techniqueGroup, (v) => { c3Technique = v; });
-    $('[data-action="check-3"]', container).addEventListener('click', () => {
-      if (!c3Sentiment || !c3Technique) { setFeedback('3', 'Selecciona sentimiento y técnica antes de comprobar.', false); return; }
-      const correct = c3Sentiment === 'Neutro' && c3Technique === 'few-shot';
-      markOptionResult(sentimentGroup, 'Neutro', c3Sentiment);
-      markOptionResult(techniqueGroup, 'few-shot', c3Technique);
-      if (correct) {
-        setFeedback('3', 'Correcto: el tweet no es claramente positivo ni negativo (Neutro), y la técnica es Few-shot porque los dos ejemplos anteriores guían al modelo.', true);
-        setRobotState('success'); Sound.success();
-        if (markChallengeSolved(3, 20)) unlockBadge('analyst');
-        showChallengeNext('3');
-      } else {
-        setFeedback('3', 'Revisa de nuevo: el tweet describe un hecho sin carga positiva ni negativa clara (Neutro), y hay dos ejemplos previos de entrada→salida guiando la respuesta (Few-shot).', false);
-        setRobotState('error'); Sound.error(); shakeElement(container);
-      }
-    });
-  }
-
-  // ---- Desafío 4: transformar prompt (validación flexible) ----
-  function initChallenge4() {
-    const container = $('#challenge-4');
-    $('[data-action="check-4"]', container).addEventListener('click', () => {
-      const text = normalize($('#fewShotBuilder').value);
-
-      // Validación conceptual, no literal: buscamos evidencia de cada
-      // elemento estructural de un prompt Few-shot bien construido.
-      const hasTwoExamples = (text.match(/ejemplo/g) || []).length >= 2;
-      const hasArrow = (text.match(/->|→/g) || []).length >= 2; // al menos 2 relaciones entrada->salida
-      const hasNewTask = /tarea|carlos mendoza/.test(text);
-      const hasPattern = /mendoza,\s*c\.?/.test(text); // patrón "Apellido, Inicial" aplicado al caso nuevo
-      const hasCarlos = /carlos mendoza/.test(text);
-
-      const score = [hasTwoExamples, hasArrow, hasNewTask, hasCarlos].filter(Boolean).length;
-      const correct = score >= 3 && hasPattern; // exige que además resuelva bien el patrón
-
-      if (correct) {
-        setFeedback('4', 'Correcto: incluiste ejemplos de entrada→salida y aplicaste el mismo patrón a "Carlos Mendoza" → "Mendoza, C.".', true);
-        setRobotState('success'); Sound.success();
-        if (markChallengeSolved(4, 20)) unlockBadge('few');
-        showChallengeNext('4');
-      } else if (score >= 3 && !hasPattern) {
-        setFeedback('4', 'Casi. Tienes la estructura Few-shot, pero falta aplicar el patrón "Apellido, Inicial" al caso de Carlos Mendoza (debería quedar "Mendoza, C.").', false);
-        setRobotState('error'); Sound.error(); shakeElement(container);
-      } else {
-        setFeedback('4', 'Te falta estructura Few-shot: incluye al menos 2 ejemplos con el formato "entrada -> salida" y luego la nueva tarea con Carlos Mendoza.', false);
-        setRobotState('error'); Sound.error(); shakeElement(container);
-      }
-    });
-  }
-
-  // ---- Desafío 5: verdadero / falso ----
-  let c5Selection = null;
-  function initChallenge5() {
-    const container = $('#challenge-5');
-    initOptionGroup(container, (v) => { c5Selection = v; });
-    $('[data-action="check-5"]', container).addEventListener('click', () => {
-      if (!c5Selection) { setFeedback('5', 'Elige Verdadero o Falso.', false); return; }
-      const correct = c5Selection === 'F';
-      markOptionResult(container, 'F', c5Selection);
-      if (correct) {
-        setFeedback('5', 'Correcto: Few-shot usa MÁS tokens de entrada por incluir ejemplos, no menos.', true);
-        setRobotState('success'); Sound.success();
-        if (markChallengeSolved(5, 20)) unlockBadge('architect');
-        showChallengeNext('5');
-      } else {
-        setFeedback('5', 'Es falso: al añadir ejemplos, Few-shot consume MÁS tokens de entrada que Zero-shot, no menos.', false);
-        setRobotState('error'); Sound.error(); shakeElement(container);
-      }
-    });
-  }
-
-  function renderResult() {
-    const hits = Object.values(state.completedChallenges).filter(Boolean).length;
-    const pct = Math.round((state.evalXp / 100) * 100);
-    $('#resultScore').textContent = `${state.evalXp} / 100 XP`;
-    $('#resultHits').textContent = `${hits} / 5 aciertos`;
-    $('#resultPct').textContent = `${pct}%`;
-
-    let message;
-    if (pct >= 90) message = '¡Experto en Prompting!';
-    else if (pct >= 70) message = '¡Muy buen dominio!';
-    else if (pct >= 50) message = 'Buen comienzo, pero puedes mejorar.';
-    else message = 'Te recomendamos repasar la misión.';
-    $('#resultMessage').textContent = message;
-
-    Sound.victory();
-  }
-
-  /* ==========================================================
-     10. MODALES
+     9. MODALES
      ========================================================== */
   function openModal(id) {
     const modal = document.getElementById(id);
@@ -658,7 +451,7 @@
   }
 
   /* ==========================================================
-     11. INICIALIZACIÓN
+     10. INICIALIZACIÓN
      ========================================================== */
   function initNavigation() {
     $('#nextBtn').addEventListener('click', () => { Sound.click(); nextSlide(); });
@@ -668,7 +461,6 @@
       // No interferir si el usuario está escribiendo en un campo
       const tag = document.activeElement.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (state.currentSlide === 'eval') return;
       if (e.key === 'ArrowRight') nextSlide();
       if (e.key === 'ArrowLeft') previousSlide();
     });
@@ -678,25 +470,6 @@
       unlockBadge('explorer');
       setRobotState('explaining');
       nextSlide();
-    });
-
-    $('#startEvalBtn').addEventListener('click', () => {
-      Sound.click();
-      showSlide('eval');
-      showChallenge(state.currentChallenge || '1');
-    });
-
-    $all('.challenge__next').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        Sound.click();
-        showChallenge(btn.getAttribute('data-next'));
-      });
-    });
-
-    $('#restartFromResultBtn').addEventListener('click', () => {
-      Sound.click();
-      showSlide('1', { silent: true });
-      setRobotState('idle');
     });
   }
 
@@ -737,10 +510,7 @@
     if (state.completedExercises.slide4) setFeedback('slide4', '¡Correcto! No se proporcionó ningún ejemplo previo.', true);
     if (state.completedExercises.slide7) setFeedback('slide7', '¡Exacto! Few-shot da mucha más consistencia de formato.', true);
 
-    $('#evalScoreLabel').textContent = `XP: ${state.evalXp}/100`;
-
     showSlide(state.currentSlide, { silent: true });
-    if (state.currentSlide === 'eval') showChallenge(state.currentChallenge);
     setRobotState('idle');
   }
 
@@ -752,11 +522,6 @@
     initSlide4();
     initSlide6();
     initSlide7();
-    initChallenge1();
-    initChallenge2();
-    initChallenge3();
-    initChallenge4();
-    initChallenge5();
 
     restoreUIFromState();
   }
